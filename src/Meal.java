@@ -10,31 +10,76 @@ public class Meal {
     private String category, mealName;
     private List<String> ingredients;
 
-    Meal() {
-        createMeal();
-        printMeal();
+
+    String getCategory() {
+        return this.category;
+    }
+    String getMealName() {
+        return this.mealName;
+    }
+    List<String> getIngredients() {
+        return this.ingredients;
     }
 
-    private void createMeal() {
+    boolean setFields(String field, String value) {
 
-        System.out.println("Which meal do you want to add (breakfast, lunch, dinner)?");
-        category = scanner.nextLine();
-        System.out.println("Input the meal's name: ");
-        mealName = scanner.nextLine();
-        System.out.println("Input the ingredients: ");
-        String userIngredients = scanner.nextLine();
-        ingredients = new ArrayList<>(Arrays.asList(userIngredients.split(",")));
-    }
+        field = field.toUpperCase();
+        boolean response = true;
 
-    private void printMeal() {
+        switch (field) {
 
-        System.out.println("\nCategory: " + category);
-        System.out.println("Name: " + mealName);
-        System.out.println("Ingredients: ");
+            case "CATEGORY":
+                response = validateMealCategory(value);
+                if (response) {
+                    this.category = value;
+                }
+                break;
 
-        for (String ingredient : ingredients) {
-            System.out.println(ingredient);
+            case "NAME":
+                response = validateNameOrIngredients(value);
+                if (response) {
+                    this.mealName = value;
+                }
+                break;
+            case "INGREDIENTS":
+                response = validateNameOrIngredients(value);
+                if(response) {
+                    this.ingredients = new ArrayList<>(Arrays.asList(value.split(",")));
+                }
         }
-        System.out.println("The meal has been added!");
+        return response;
     }
+
+    private boolean validateMealCategory(String nameOrCategory) {
+
+        return nameOrCategory.equalsIgnoreCase("breakfast") || nameOrCategory.equalsIgnoreCase("lunch")
+                || nameOrCategory.equalsIgnoreCase("dinner");
+    }
+
+    private boolean validateNameOrIngredients(String inputToValidate) {
+
+        String pattern = "[A-Za-z -]+";
+        String[] nameOrIngredients = inputToValidate.split(",");
+
+        for (String string : nameOrIngredients) {
+            if (string.isEmpty() || !string.trim().matches(pattern)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+
+        String formattedIngredients = String.join("\n", this.ingredients);
+        return """
+                                
+                Category: %s
+                Name: %s
+                Ingredients:
+                %s""".formatted(this.category, this.mealName, formattedIngredients);
+    }
+
+
 }

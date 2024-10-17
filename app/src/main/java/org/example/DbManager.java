@@ -139,4 +139,5 @@ class DbManager {
             System.err.println("Error truncating table " + tableName + ": " + e.getMessage());
         }
     }
+    
 }

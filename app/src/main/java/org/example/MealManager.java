@@ -51,7 +51,7 @@ public class MealManager {
             System.err.println("No meals saved. Add a meal first.");
         } else {
             for (Meal meal : mealsList) {
-                System.out.println(meal);
+                System.out.print("\n" + meal);
             }
             System.out.println();
         }

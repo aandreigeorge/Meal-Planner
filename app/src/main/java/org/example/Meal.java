@@ -81,4 +81,5 @@ public class Meal {
                 %s
                 """.formatted(this.category, this.mealName, formattedIngredients);
     }
+
 }

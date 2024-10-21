@@ -42,28 +42,42 @@ class DbManager {
         }
     }
 
-    List<Meal> loadMeals() {
+    List<Meal> loadMeals(String category) {
+        String query;
+        boolean loadByCategory = false;
         List<Meal> mealsList = new ArrayList<>();
-        String mealQuery = "SELECT * FROM meals;";
 
-        try (PreparedStatement loadMeal = dbConnection.prepareStatement(mealQuery);
-             ResultSet mealsResultSet = loadMeal.executeQuery()) {
+        if (category.equalsIgnoreCase("ALL MEALS")) {
+            query = "SELECT * FROM meals;";
+        } else {
+            loadByCategory = true;
+            query = "SELECT * FROM meals WHERE category = ?;";
+        }
 
-            while (mealsResultSet.next()) {
-                String mealCategory = mealsResultSet.getString("category");
-                String mealName = mealsResultSet.getString("meal");
-                int mealId = mealsResultSet.getInt("meal_id");
-                String mealIngredients = loadMealIngredients(mealId);
+        try (PreparedStatement loadMeal = dbConnection.prepareStatement(query)) {
 
-                Meal newMeal = new Meal();
-                newMeal.setFields("CATEGORY", mealCategory);
-                newMeal.setFields("NAME", mealName);
-                newMeal.setFields("INGREDIENTS", mealIngredients);
-                mealsList.add(newMeal);
+            if (loadByCategory) {
+                loadMeal.setString(1, category);
             }
 
+            try (ResultSet mealsResultSet = loadMeal.executeQuery()) {
+                while (mealsResultSet.next()) {
+                    String mealCategory = mealsResultSet.getString("category");
+                    String mealName = mealsResultSet.getString("meal");
+                    int mealId = mealsResultSet.getInt("meal_id");
+                    String mealIngredients = loadMealIngredients(mealId);
+
+                    Meal newMeal = new Meal();
+                    newMeal.setFields("CATEGORY", mealCategory);
+                    newMeal.setFields("NAME", mealName);
+                    newMeal.setFields("INGREDIENTS", mealIngredients);
+                    mealsList.add(newMeal);
+                }
+            } catch (SQLException e) {
+                System.err.println("Error retrieving meals for category: " + category);
+            }
         } catch (SQLException e) {
-            System.err.println("Error loading meals from the database!");
+            System.err.println("Error preparing statement: " + e.getMessage());
         }
 
         return mealsList;
@@ -81,7 +95,6 @@ class DbManager {
                     String ingredient = ingredientsResultSet.getString("ingredient");
                     ingredientsList.add(ingredient);
                 }
-
             } catch (SQLException e) {
                 System.err.println("Error retrieving ingredients for meal ID: " + mealId);
                 return null;
@@ -139,5 +152,5 @@ class DbManager {
             System.err.println("Error truncating table " + tableName + ": " + e.getMessage());
         }
     }
-    
+
 }

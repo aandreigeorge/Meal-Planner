@@ -28,21 +28,21 @@ public class Meal {
 
         switch (field) {
             case "CATEGORY":
-                response = validateMealCategory(value);
+                response = MealUtils.isValidMealCategory(value);
                 if (response) {
                     this.category = value;
                 }
                 break;
 
             case "NAME":
-                response = validateNameOrIngredients(value);
+                response = MealUtils.isValidNameOrIngredient(value);
                 if (response) {
                     this.mealName = value;
                 }
                 break;
 
             case "INGREDIENTS":
-                response = validateNameOrIngredients(value);
+                response = MealUtils.isValidNameOrIngredient(value);
                 if (response) {
                     this.ingredients = Arrays.stream(value.split(","))
                             .map(String::trim)
@@ -53,33 +53,14 @@ public class Meal {
         return response;
     }
 
-    private boolean validateMealCategory(String nameOrCategory) {
-        return nameOrCategory.equalsIgnoreCase("breakfast") ||
-                nameOrCategory.equalsIgnoreCase("lunch") ||
-                nameOrCategory.equalsIgnoreCase("dinner");
-    }
-
-    private boolean validateNameOrIngredients(String inputToValidate) {
-        String pattern = "[A-Za-z -]+";
-        String[] nameOrIngredients = inputToValidate.split(",");
-
-        for (String string : nameOrIngredients) {
-            if (string.isEmpty() || !string.trim().matches(pattern)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     @Override
     public String toString() {
         String formattedIngredients = String.join("\n", this.ingredients);
         return """
-                Category: %s
                 Name: %s
                 Ingredients:
                 %s
-                """.formatted(this.category, this.mealName, formattedIngredients);
+                """.formatted(this.mealName, formattedIngredients);
     }
 
 }

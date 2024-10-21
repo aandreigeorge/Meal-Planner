@@ -1,56 +1,62 @@
 package org.example;
 
 import java.sql.Connection;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 public class MealManager {
 
-    private static final Scanner scanner = new Scanner(System.in);
-    private List<Meal> mealsList;
     private final DbManager dbManager;
     private final UserInterface userInterface;
+    private List<Meal> allMeals, mealsByCategory;
 
     MealManager(Connection dbConnection) {
-        this.mealsList = new ArrayList<>();
-        this.userInterface = new UserInterface();
         this.dbManager = new DbManager(dbConnection);
-        loadMeals();
-        runMeals();
-    }
-
-    private void loadMeals() {
-        mealsList = dbManager.loadMeals();
+        this.userInterface = new UserInterface();
+        startApplication();
     }
 
     @SuppressWarnings("InfiniteLoopStatement") // exit() method handles the InfiniteLoopStatement
-    private void runMeals() {
+    private void startApplication() {
+        loadAllMeals();
         String action;
 
         do {
-            System.out.println("What would you like to do (add, show, exit)?");
-            action = scanner.nextLine().toUpperCase();
+            action = userInterface.getMenuChoice();
 
             switch (action) {
                 case "ADD" -> addMeal();
-                case "SHOW" -> displayMeals();
+                case "SHOW" -> showByCategory();
                 case "EXIT" -> exit();
             }
         } while (true);
     }
 
-    private void addMeal() {
-        Meal mealToAdd = userInterface.addMeal();
-        mealsList.add(mealToAdd); // Adding to local list
-        dbManager.addMeal(mealToAdd); // Adding to db
+    private void loadAllMeals() {
+        allMeals = dbManager.loadMeals("ALL MEALS");
     }
 
-    private void displayMeals() {
-        if (mealsList.isEmpty()) {
-            System.err.println("No meals saved. Add a meal first.");
+    private void loadMealsByCategory(String category) {
+        mealsByCategory = dbManager.loadMeals(category);
+    }
+
+    private void addMeal() {
+        Meal mealToAdd = userInterface.addMeal();
+        allMeals.add(mealToAdd);
+        dbManager.addMeal(mealToAdd);
+    }
+
+    private void showByCategory() {
+        String selectedMealCategory = userInterface.selectMealCategory();
+        loadMealsByCategory(selectedMealCategory);
+        printMeals(selectedMealCategory, mealsByCategory);
+    }
+
+    private void printMeals(String mealCategory, List<Meal> mealsToShow) {
+        if (mealsToShow.isEmpty()) {
+            System.out.println("No meals found.");
         } else {
-            for (Meal meal : mealsList) {
+            System.out.println("Category: " + mealCategory);
+            for (Meal meal : mealsToShow) {
                 System.out.print("\n" + meal);
             }
             System.out.println();

@@ -1,6 +1,7 @@
 package org.example.ui;
 
-import org.example.model.MealUtils;
+import org.example.utils.MealUtils;
+import org.example.utils.TextUtils;
 
 import java.util.List;
 import java.util.Scanner;
@@ -14,19 +15,18 @@ public class UserInterface {
         return scanner.nextLine().toUpperCase();
     }
 
-    public List<String> getMealFromUser() {
-        String mealCategory = getMealCategory();
-        String mealName = getMealNameOrIngredients("MEAL NAME");
-        String mealIngredients = getMealNameOrIngredients("MEAL INGREDIENTS");
-        System.out.println("The meal has been added!");
+    public List<String> getMealDataFromUser() {
+        String mealCategory = pickMealCategory();
+        String mealName = pickMealNameOrMealIngredients("MEAL NAME");
+        String mealIngredients = pickMealNameOrMealIngredients("MEAL INGREDIENTS");
         return List.of(mealCategory, mealName, mealIngredients);
     }
 
-    private String getMealCategory() {
+    private String pickMealCategory() {
         String userInput;
         System.out.println("Which meal category do you want to add (breakfast, lunch, dinner)?");
         do {
-            userInput = scanner.nextLine();
+            userInput = scanner.nextLine().toLowerCase();
             if (!MealUtils.isValidMealCategory(userInput)) {
                 System.out.println("Wrong meal category! Choose from: breakfast, lunch, dinner.");
             }
@@ -35,7 +35,7 @@ public class UserInterface {
         return userInput;
     }
 
-    private String getMealNameOrIngredients(String selection) {
+    private String pickMealNameOrMealIngredients(String selection) {
         String userInput;
 
         if (selection.equalsIgnoreCase("MEAL NAME")) {
@@ -45,7 +45,7 @@ public class UserInterface {
         }
 
         do {
-            userInput = scanner.nextLine();
+            userInput = TextUtils.toTitleCase(scanner.nextLine());
             if (!MealUtils.isValidNameOrIngredient(userInput)) {
                 System.out.println("Wrong format. Use letters only!");
             }
@@ -59,12 +59,20 @@ public class UserInterface {
         System.out.println("Which category do you want to print (breakfast, lunch, dinner)?");
 
         do {
-            mealCategory = scanner.nextLine();
+            mealCategory = scanner.nextLine().toLowerCase();
             if (!MealUtils.isValidMealCategory(mealCategory)) {
                 System.out.println("Wrong meal category! Choose from: breakfast, lunch, dinner.");
             }
         } while (!MealUtils.isValidMealCategory(mealCategory));
 
         return mealCategory;
+    }
+
+    public String pickMealForPlan() {
+        return scanner.nextLine();
+    }
+
+    public void closeScanner() {
+        scanner.close();
     }
 }

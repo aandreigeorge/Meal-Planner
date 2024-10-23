@@ -1,6 +1,6 @@
 package org.example.app;
 
-import org.example.database.DbUtils;
+import org.example.utils.DbUtils;
 import org.example.service.MealManager;
 
 import java.sql.Connection;

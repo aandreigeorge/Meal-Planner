@@ -2,12 +2,11 @@ package org.example.database;
 
 import org.example.model.Meal;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MealDaoPostgresImpl implements MealDao {
 
@@ -19,33 +18,34 @@ public class MealDaoPostgresImpl implements MealDao {
 
     @Override
     public List<List<String>> loadMeals(String category) {
-        String query;
+        String loadMealQuery;
         boolean loadByCategory = false;
         List<List<String>> mealsList = new ArrayList<>();
 
         if (category.equalsIgnoreCase("ALL MEALS")) {
-            query = "SELECT * FROM meals;";
+            loadMealQuery = "SELECT * FROM meals;";
         } else {
             loadByCategory = true;
-            query = "SELECT * FROM meals WHERE category = ?;";
+            loadMealQuery = "SELECT * FROM meals WHERE category = ? ORDER BY meal ASC;";
         }
 
-        try (PreparedStatement loadMeal = dbConnection.prepareStatement(query)) {
+        try (PreparedStatement preparedStatement = dbConnection.prepareStatement(loadMealQuery)) {
             if (loadByCategory) {
-                loadMeal.setString(1, category);
+                preparedStatement.setString(1, category);
             }
 
-            try (ResultSet mealsResultSet = loadMeal.executeQuery()) {
-                while (mealsResultSet.next()) {
-                    String mealCategory = mealsResultSet.getString("category");
-                    String mealName = mealsResultSet.getString("meal");
-                    int mealId = mealsResultSet.getInt("meal_id");
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    String mealCategory = resultSet.getString("category");
+                    String mealName = resultSet.getString("meal");
+                    int mealId = resultSet.getInt("meal_id");
                     String mealIngredients = loadMealIngredients(mealId);
 
                     List<String> individualMealData = new ArrayList<>();
-                    individualMealData.add(mealCategory);
-                    individualMealData.add(mealName);
-                    individualMealData.add(mealIngredients);
+                    individualMealData.add(mealCategory); // 0 Category
+                    individualMealData.add(mealName); // 1 Meal
+                    individualMealData.add(mealIngredients); // 2 Ingredients
+                    individualMealData.add(Integer.toString(mealId)); // 3 Id
 
                     mealsList.add(individualMealData);
                 }
@@ -61,14 +61,14 @@ public class MealDaoPostgresImpl implements MealDao {
 
     private String loadMealIngredients(int mealId) {
         List<String> ingredientsList = new ArrayList<>();
-        String ingredientQuery = "SELECT ingredient FROM ingredients WHERE meal_id = ?";
+        String selectIngredientQuery = "SELECT ingredient FROM ingredients WHERE meal_id = ?";
 
-        try (PreparedStatement ingredientStatement = dbConnection.prepareStatement(ingredientQuery)) {
-            ingredientStatement.setInt(1, mealId);
+        try (PreparedStatement preparedStatement = dbConnection.prepareStatement(selectIngredientQuery)) {
+            preparedStatement.setInt(1, mealId);
 
-            try (ResultSet ingredientsResultSet = ingredientStatement.executeQuery()) {
-                while (ingredientsResultSet.next()) {
-                    String ingredient = ingredientsResultSet.getString("ingredient");
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    String ingredient = resultSet.getString("ingredient");
                     ingredientsList.add(ingredient);
                 }
             } catch (SQLException e) {
@@ -87,10 +87,10 @@ public class MealDaoPostgresImpl implements MealDao {
     public void addMeal(Meal mealToAdd) {
         String insertMealQuery = "INSERT INTO meals (category, meal) VALUES (?, ?) RETURNING meal_id;";
 
-        try (PreparedStatement insertMeal = dbConnection.prepareStatement(insertMealQuery)) {
-            insertMeal.setString(1, mealToAdd.getCategory());
-            insertMeal.setString(2, mealToAdd.getMealName());
-            ResultSet generatedKeys = insertMeal.executeQuery();
+        try (PreparedStatement preparedStatement = dbConnection.prepareStatement(insertMealQuery)) {
+            preparedStatement.setString(1, mealToAdd.getCategory());
+            preparedStatement.setString(2, mealToAdd.getMealName());
+            ResultSet generatedKeys = preparedStatement.executeQuery();
 
             if (generatedKeys.next()) {
                 int mealId = generatedKeys.getInt(1);
@@ -112,6 +112,54 @@ public class MealDaoPostgresImpl implements MealDao {
             }
         } catch (SQLException e) {
             System.err.println("Error adding ingredients for meal ID: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void saveMealPlan(Map.Entry<Integer, String> mealOption, String mealCategory, String day) {
+        String insertPlanQuery = "INSERT INTO plan (meal_option, meal_category, meal_id, day) VALUES (?, ?, ?, ?)";
+
+        try (PreparedStatement preparedStatement = dbConnection.prepareStatement(insertPlanQuery)) {
+            preparedStatement.setString(1, mealOption.getValue());
+            preparedStatement.setString(2, mealCategory);
+            preparedStatement.setInt(3, mealOption.getKey());
+            preparedStatement.setString(4, day);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Error saving meal plan: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<String, String> loadMealPlanByDays(String day) {
+        Map<String, String> mealPlanForDay = new LinkedHashMap<>();
+        String loadPlanQuery = "SELECT meal_category, meal_option FROM plan WHERE day = ?";
+
+        try(PreparedStatement preparedStatement = dbConnection.prepareStatement(loadPlanQuery)) {
+            preparedStatement.setString(1, day);
+
+            try(ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    String meal_category = resultSet.getString("meal_category");
+                    String meal_option = resultSet.getString("meal_option");
+                    mealPlanForDay.put(meal_category, meal_option);
+                }
+            } catch (SQLException e) {
+                System.err.println("Error loading meal plan for " + day);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error preparing statement for " + day  + "'s meal plan");
+        }
+        return mealPlanForDay;
+    }
+
+    @Override
+    public void clearOldPlan() {
+        String deletePlanQuery = "DELETE FROM plan;";
+        try (Statement statement = dbConnection.createStatement()) {
+            statement.executeUpdate(deletePlanQuery);
+        } catch (SQLException e) {
+            System.err.println("Error clearing old plans: " + e.getMessage());
         }
     }
 }

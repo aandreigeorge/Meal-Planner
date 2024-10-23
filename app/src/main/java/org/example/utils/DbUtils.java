@@ -1,4 +1,4 @@
-package org.example.database;
+package org.example.utils;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -28,9 +28,19 @@ public class DbUtils {
                 "FOREIGN KEY (meal_id) REFERENCES meals(meal_id) ON DELETE CASCADE" +
                 ");";
 
+
+        String createPlanTable = "CREATE TABLE IF NOT EXISTS plan (" +
+                "meal_option VARCHAR(255), " +
+                "meal_category VARCHAR(255), " +
+                "meal_id INTEGER, " +
+                "day VARCHAR(255), " +  // New column to store the day of the week
+                "FOREIGN KEY (meal_id) REFERENCES meals(meal_id) ON DELETE CASCADE" +
+                ");";
+
         try (Statement statement = dbConnection.createStatement()) {
             statement.executeUpdate(createMealsTable);
             statement.executeUpdate(createIngredientsTable);
+            statement.executeUpdate(createPlanTable);
         } catch (SQLException e) {
             System.err.println("Error occurred while creating tables: " + e.getMessage());
         }

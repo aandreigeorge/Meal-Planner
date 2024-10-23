@@ -1,15 +1,14 @@
-package org.example;
+package org.example.model;
 
 public class MealUtils {
 
-
-    static boolean isValidMealCategory(String nameOrCategory) {
+    public static boolean isValidMealCategory(String nameOrCategory) {
         return nameOrCategory.equalsIgnoreCase("BREAKFAST") ||
                 nameOrCategory.equalsIgnoreCase("LUNCH") ||
                 nameOrCategory.equalsIgnoreCase("DINNER");
     }
 
-    static boolean isValidNameOrIngredient(String inputToValidate) {
+    public static boolean isValidNameOrIngredient(String inputToValidate) {
         String pattern = "[A-Za-z -]+";
         String[] nameOrIngredients = inputToValidate.split(",");
 
@@ -20,5 +19,4 @@ public class MealUtils {
         }
         return true;
     }
-
 }

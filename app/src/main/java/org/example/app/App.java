@@ -1,4 +1,7 @@
-package org.example;
+package org.example.app;
+
+import org.example.database.DbUtils;
+import org.example.service.MealManager;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -6,8 +9,8 @@ import java.sql.SQLException;
 public class App {
 
     public static void main(String[] args) {
-
-        try (Connection dbConnection = DbManager.getDbConnection()) {
+        try (Connection dbConnection = DbUtils.getDbConnection()) {
+            DbUtils.checkDbTableStructure(dbConnection);
             new MealManager(dbConnection);
         } catch (SQLException e) {
             System.err.println("Database Connection Failed!");
@@ -17,5 +20,4 @@ public class App {
     public String getGreeting() {
         return "Hello World!";
     }
-
 }

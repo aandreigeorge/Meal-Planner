@@ -46,7 +46,7 @@ tasks.named('test') {
 jar {
     manifest {
         attributes(
-                'Main-Class': 'org.example.App' // Replace with your main class
+                'Main-Class': 'org.example.app.App' // Replace with your main class
         )
     }
 }

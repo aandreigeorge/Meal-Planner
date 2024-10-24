@@ -9,12 +9,11 @@ public interface MealDao {
 
     void addMeal(Meal meal);
 
-    List<List<String>> loadMeals(String category);
+    List<List<String>> loadMeals(String category, String order);
 
     void saveMealPlan(Map.Entry<Integer, String> mealOption, String mealCategory, String day);
 
     Map<String, String> loadMealPlanByDays(String day);
 
     void clearOldPlan();
-
 }

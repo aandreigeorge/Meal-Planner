@@ -15,6 +15,7 @@ public class Meal {
         setMealIngredients(mealIngredients);
     }
 
+
     public String getCategory() {
         return this.mealCategory;
     }

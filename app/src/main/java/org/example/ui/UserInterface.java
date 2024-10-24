@@ -16,15 +16,15 @@ public class UserInterface {
     }
 
     public List<String> getMealDataFromUser() {
-        String mealCategory = pickMealCategory();
-        String mealName = pickMealNameOrMealIngredients("MEAL NAME");
-        String mealIngredients = pickMealNameOrMealIngredients("MEAL INGREDIENTS");
+        String mealCategory = promptForMealCategory();
+        String mealName = promptForMealNameOrIngredients("MEAL NAME");
+        String mealIngredients = promptForMealNameOrIngredients("MEAL INGREDIENTS");
         return List.of(mealCategory, mealName, mealIngredients);
     }
 
-    private String pickMealCategory() {
+    private String promptForMealCategory() {
         String userInput;
-        System.out.println("Which meal category do you want to add (breakfast, lunch, dinner)?");
+        System.out.println("Which meal do you want to add (breakfast, lunch, dinner)?");
         do {
             userInput = scanner.nextLine().toLowerCase();
             if (!MealUtils.isValidMealCategory(userInput)) {
@@ -35,7 +35,7 @@ public class UserInterface {
         return userInput;
     }
 
-    private String pickMealNameOrMealIngredients(String selection) {
+    private String promptForMealNameOrIngredients(String selection) {
         String userInput;
 
         if (selection.equalsIgnoreCase("MEAL NAME")) {
@@ -54,7 +54,7 @@ public class UserInterface {
         return userInput;
     }
 
-    public String selectMealCategoryToShow() {
+    public String selectCategoryOfMealsToShow() {
         String mealCategory;
         System.out.println("Which category do you want to print (breakfast, lunch, dinner)?");
 
@@ -68,7 +68,7 @@ public class UserInterface {
         return mealCategory;
     }
 
-    public String pickMealForPlan() {
+    public String getMealChoiceForPlan() {
         return scanner.nextLine();
     }
 

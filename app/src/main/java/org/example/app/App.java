@@ -1,7 +1,7 @@
 package org.example.app;
 
-import org.example.utils.DbUtils;
 import org.example.service.MealManager;
+import org.example.utils.DbUtils;
 
 import java.sql.Connection;
 import java.sql.SQLException;

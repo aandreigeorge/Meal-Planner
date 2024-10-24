@@ -16,17 +16,22 @@ public class MealDaoPostgresImpl implements MealDao {
         this.dbConnection = dbConnection;
     }
 
+
     @Override
-    public List<List<String>> loadMeals(String category) {
+    public List<List<String>> loadMeals(String category, String order) {
         String loadMealQuery;
         boolean loadByCategory = false;
+
         List<List<String>> mealsList = new ArrayList<>();
 
-        if (category.equalsIgnoreCase("ALL MEALS")) {
+        if (category == null) {
             loadMealQuery = "SELECT * FROM meals;";
         } else {
             loadByCategory = true;
-            loadMealQuery = "SELECT * FROM meals WHERE category = ? ORDER BY meal ASC;";
+            loadMealQuery = "SELECT * FROM meals WHERE category = ?";
+        }
+        if (order != null) {
+            loadMealQuery += " ORDER BY meal " + order;
         }
 
         try (PreparedStatement preparedStatement = dbConnection.prepareStatement(loadMealQuery)) {
@@ -135,10 +140,10 @@ public class MealDaoPostgresImpl implements MealDao {
         Map<String, String> mealPlanForDay = new LinkedHashMap<>();
         String loadPlanQuery = "SELECT meal_category, meal_option FROM plan WHERE day = ?";
 
-        try(PreparedStatement preparedStatement = dbConnection.prepareStatement(loadPlanQuery)) {
+        try (PreparedStatement preparedStatement = dbConnection.prepareStatement(loadPlanQuery)) {
             preparedStatement.setString(1, day);
 
-            try(ResultSet resultSet = preparedStatement.executeQuery()) {
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
                     String meal_category = resultSet.getString("meal_category");
                     String meal_option = resultSet.getString("meal_option");
@@ -148,7 +153,7 @@ public class MealDaoPostgresImpl implements MealDao {
                 System.err.println("Error loading meal plan for " + day);
             }
         } catch (SQLException e) {
-            System.err.println("Error preparing statement for " + day  + "'s meal plan");
+            System.err.println("Error preparing statement for " + day + "'s meal plan");
         }
         return mealPlanForDay;
     }
@@ -162,4 +167,5 @@ public class MealDaoPostgresImpl implements MealDao {
             System.err.println("Error clearing old plans: " + e.getMessage());
         }
     }
+
 }

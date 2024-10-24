@@ -24,7 +24,7 @@ public class MealUtils {
         return true;
     }
 
-    public static Map<Integer, String> getMealNamesAndIds(List<List<String>> mealsData) {
+    public static Map<Integer, String> extractMealNamesAndIds(List<List<String>> mealsData) {
         Map<Integer, String> mealNamesAndIds = new LinkedHashMap<>();
 
         for (List<String> individualMealData : mealsData) {
@@ -34,4 +34,5 @@ public class MealUtils {
         }
         return mealNamesAndIds;
     }
+
 }

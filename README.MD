@@ -17,7 +17,7 @@ Save the plan to the database. For this purpose, create a new table named plan w
 meal_category, and meal_id. The third column must match the meal_id columns of the other two tables. You are free to choose how to implement 
 the fields in this table. If a new plan is created, delete the old plan.
 
-The list plan command is simple and it only prints the plan to the console which is stored in the database.
+The list plan command is simple, and it only prints the plan to the console which is stored in the database.
 
 Objectives
 

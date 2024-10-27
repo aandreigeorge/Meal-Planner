@@ -11,7 +11,7 @@ public class UserInterface {
     private static final Scanner scanner = new Scanner(System.in);
 
     public String getMenuChoice() {
-        System.out.println("What would you like to do (add, show, plan, list plan, exit)?");
+        System.out.println("What would you like to do (add, show, plan, list plan, save, exit)?");
         return scanner.nextLine().toUpperCase();
     }
 
@@ -72,7 +72,21 @@ public class UserInterface {
         return scanner.nextLine();
     }
 
+    public String getFileName() {
+        String fileName;
+
+        do {
+            fileName = scanner.nextLine();
+            if (fileName.isEmpty()) {
+                System.out.println("File name cannot be null or empty.");
+            }
+        } while (fileName.isEmpty());
+
+        return fileName;
+    }
+
     public void closeScanner() {
         scanner.close();
     }
+
 }

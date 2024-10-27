@@ -11,9 +11,14 @@ public interface MealDao {
 
     List<List<String>> loadMeals(String category, String order);
 
-    void saveMealPlan(Map.Entry<Integer, String> mealOption, String mealCategory, String day);
+    List<String> loadMealIngredients(int mealId);
+
+    void saveMealToPlan(Map.Entry<Integer, String> mealOption, String mealCategory, String day);
 
     Map<String, String> loadMealPlanByDays(String day);
 
-    void clearOldPlan();
+    Map<Integer, Integer> getMealCountsFromPlan();
+
+    void clearOldMealPlan();
+
 }

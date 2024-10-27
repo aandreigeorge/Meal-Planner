@@ -6,11 +6,13 @@ import org.example.model.Meal;
 import org.example.model.MealFactory;
 import org.example.model.SimpleMealFactory;
 import org.example.ui.UserInterface;
-import org.example.utils.MealUtils;
 import org.example.utils.DayOfWeek;
+import org.example.utils.FileUtils;
+import org.example.utils.MealUtils;
 
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -40,6 +42,7 @@ public class MealManager {
                 case "SHOW" -> displayMealsByCategory();
                 case "PLAN" -> createMealPlan();
                 case "LIST PLAN" -> displayPlanForWeek();
+                case "SAVE" -> saveShoppingListToFile();
                 case "EXIT" -> exit();
             }
         } while (true);
@@ -47,7 +50,7 @@ public class MealManager {
 
     private void addMeal() {
         List<String> mealData = getMealDataFromUser();
-        Meal mealToAdd = createMealObjectsFromData(mealData);
+        Meal mealToAdd = createMealObjectFromData(mealData);
         mealDaoPostgres.addMeal(mealToAdd);
         System.out.println("The meal has been added!");
     }
@@ -57,7 +60,7 @@ public class MealManager {
     }
 
     private void createMealPlan() {
-        mealDaoPostgres.clearOldPlan();
+        mealDaoPostgres.clearOldMealPlan();
         Map<Integer, String> breakfastOptions, lunchOptions, dinnerOptions;
 
         breakfastOptions = extractMealNamesAndIds(loadMealsByCategory("breakfast", "ASC"));
@@ -105,19 +108,49 @@ public class MealManager {
     }
 
     private void saveSelectedMeal(Map.Entry<Integer, String> selectedMeal, String category, String day) {
-        mealDaoPostgres.saveMealPlan(selectedMeal, category, day);
+        mealDaoPostgres.saveMealToPlan(selectedMeal, category, day);
+    }
+
+    private void saveShoppingListToFile() {
+        Map<String, Integer> shoppingList = loadShoppingList();
+
+        if (shoppingList.isEmpty()) {
+            System.out.println("Unable to save. Plan your meals first.");
+        } else {
+            System.out.println("Input a filename:");
+            String fileName = userInterface.getFileName();
+            FileUtils.writeShoppingListToFile(fileName, shoppingList);
+            System.out.println("Saved!");
+        }
+    }
+
+    private Map<String, Integer> loadShoppingList() {
+        List<String> mealIngredients;
+        Map<String, Integer> totalIngredientsList = new LinkedHashMap<>();
+        Map<Integer, Integer> mealOrderCounts = mealDaoPostgres.getMealCountsFromPlan();
+
+        for (Map.Entry<Integer, Integer> mealEntry : mealOrderCounts.entrySet()) {
+            int mealId = mealEntry.getKey();
+            int mealOrderCount = mealEntry.getValue();
+            mealIngredients = mealDaoPostgres.loadMealIngredients(mealId);
+
+            for (String ingredient : mealIngredients) {
+                totalIngredientsList.put(ingredient, totalIngredientsList.getOrDefault(ingredient, 0) + mealOrderCount);
+            }
+        }
+        return totalIngredientsList;
     }
 
     private List<Meal> convertToMealObjects(List<List<String>> mealsData) {
         List<Meal> meals = new ArrayList<>();
         for (List<String> mealEntry : mealsData) {
-            Meal meal = createMealObjectsFromData(mealEntry);
+            Meal meal = createMealObjectFromData(mealEntry);
             meals.add(meal);
         }
         return meals;
     }
 
-    private Meal createMealObjectsFromData(List<String> mealData) {
+    private Meal createMealObjectFromData(List<String> mealData) {
         String mealCategory = mealData.get(0);
         String mealName = mealData.get(1);
         String mealIngredients = mealData.get(2);
@@ -126,6 +159,10 @@ public class MealManager {
 
     private List<List<String>> loadMealsByCategory(String category, String order) {
         return mealDaoPostgres.loadMeals(category, order);
+    }
+
+    private Map<String, String> loadMealPlanByDay(String day) {
+        return mealDaoPostgres.loadMealPlanByDays(day);
     }
 
     private Map<Integer, String> extractMealNamesAndIds(List<List<String>> mealsDataList) {
@@ -153,7 +190,7 @@ public class MealManager {
 
     private void displayPlanForWeek() {
         for (DayOfWeek day : DayOfWeek.values()) {
-            Map<String, String> planForDay = mealDaoPostgres.loadMealPlanByDays(day.getDisplayName());
+            Map<String, String> planForDay = loadMealPlanByDay(day.getDisplayName());
             if (planForDay.isEmpty()) {
                 System.out.println("Database does not contain any meal plans!");
                 return;

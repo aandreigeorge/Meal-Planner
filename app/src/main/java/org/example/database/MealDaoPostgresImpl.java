@@ -21,7 +21,6 @@ public class MealDaoPostgresImpl implements MealDao {
     public List<List<String>> loadMeals(String category, String order) {
         String loadMealQuery;
         boolean loadByCategory = false;
-
         List<List<String>> mealsList = new ArrayList<>();
 
         if (category == null) {
@@ -44,9 +43,10 @@ public class MealDaoPostgresImpl implements MealDao {
                     String mealCategory = resultSet.getString("category");
                     String mealName = resultSet.getString("meal");
                     int mealId = resultSet.getInt("meal_id");
-                    String mealIngredients = loadMealIngredients(mealId);
+                    String mealIngredients = String.join(",", loadMealIngredients(mealId));
 
                     List<String> individualMealData = new ArrayList<>();
+
                     individualMealData.add(mealCategory); // 0 Category
                     individualMealData.add(mealName); // 1 Meal
                     individualMealData.add(mealIngredients); // 2 Ingredients
@@ -64,7 +64,8 @@ public class MealDaoPostgresImpl implements MealDao {
         return mealsList;
     }
 
-    private String loadMealIngredients(int mealId) {
+    @Override
+    public List<String> loadMealIngredients(int mealId) {
         List<String> ingredientsList = new ArrayList<>();
         String selectIngredientQuery = "SELECT ingredient FROM ingredients WHERE meal_id = ?";
 
@@ -78,14 +79,13 @@ public class MealDaoPostgresImpl implements MealDao {
                 }
             } catch (SQLException e) {
                 System.err.println("Error retrieving ingredients for meal ID: " + mealId);
-                return null;
             }
 
         } catch (SQLException e) {
             System.err.println("Error preparing statement for meal ID: " + e.getMessage());
         }
 
-        return String.join(",", ingredientsList);
+        return ingredientsList;
     }
 
     @Override
@@ -106,11 +106,11 @@ public class MealDaoPostgresImpl implements MealDao {
         }
     }
 
-    private void addMealIngredients(int mealId, List<String> ingredients) {
+    private void addMealIngredients(int mealId, List<String> mealIngredients) {
         String insertIngredientQuery = "INSERT INTO ingredients (meal_id, ingredient) VALUES (?, ?)";
 
         try (PreparedStatement preparedStatement = dbConnection.prepareStatement(insertIngredientQuery)) {
-            for (String ingredient : ingredients) {
+            for (String ingredient : mealIngredients) {
                 preparedStatement.setInt(1, mealId);
                 preparedStatement.setString(2, ingredient);
                 preparedStatement.executeUpdate();
@@ -121,7 +121,7 @@ public class MealDaoPostgresImpl implements MealDao {
     }
 
     @Override
-    public void saveMealPlan(Map.Entry<Integer, String> mealOption, String mealCategory, String day) {
+    public void saveMealToPlan(Map.Entry<Integer, String> mealOption, String mealCategory, String day) {
         String insertPlanQuery = "INSERT INTO plan (meal_option, meal_category, meal_id, day) VALUES (?, ?, ?, ?)";
 
         try (PreparedStatement preparedStatement = dbConnection.prepareStatement(insertPlanQuery)) {
@@ -159,7 +159,31 @@ public class MealDaoPostgresImpl implements MealDao {
     }
 
     @Override
-    public void clearOldPlan() {
+    public Map<Integer, Integer> getMealCountsFromPlan() {
+        Map<Integer, Integer> mealCounts = new LinkedHashMap<>();
+        String mealCountQuery = "SELECT meal_id, COUNT(*) AS total_count " + "FROM plan " + "GROUP BY meal_id";
+
+        try (PreparedStatement preparedStatement = dbConnection.prepareStatement(mealCountQuery)) {
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+
+                while (resultSet.next()) {
+                    int mealId = resultSet.getInt("meal_id");
+                    int totalCount = resultSet.getInt("total_count");
+                    mealCounts.put(mealId, totalCount);
+                }
+            } catch (SQLException e) {
+                System.err.println("Error processing the result set");
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error preparing statement for counting meals from the meal plan");
+        }
+        return mealCounts;
+    }
+
+    @Override
+    public void clearOldMealPlan() {
         String deletePlanQuery = "DELETE FROM plan;";
         try (Statement statement = dbConnection.createStatement()) {
             statement.executeUpdate(deletePlanQuery);

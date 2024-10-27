@@ -37,9 +37,7 @@ public class Meal {
     }
 
     public void setMealIngredients(String mealIngredients) {
-        this.mealIngredients = Arrays.stream(mealIngredients.split(","))
-                .map(String::trim)
-                .toList();
+        this.mealIngredients = Arrays.stream(mealIngredients.split(",")).map(String::trim).toList();
     }
 
     @Override
@@ -51,4 +49,5 @@ public class Meal {
                 %s
                 """.formatted(this.mealName, formattedIngredients);
     }
+
 }

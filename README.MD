@@ -1,6 +1,5 @@
 Stage 6 Description
 
-Description
 Meal planning is only half of the job: we also need to be sure that we have all ingredients! In this stage, the program should
 generate a shopping list that contains the required ingredients for meals. If several meals require one ingredient, put it in the 
 list only once in the following format: ingredient xN, where N is how many times we need this ingredient.
